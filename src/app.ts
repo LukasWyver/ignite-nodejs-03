@@ -1,25 +1,24 @@
 import fastify from 'fastify'
-import { Pool, neonConfig } from '@neondatabase/serverless'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { PrismaClient } from '@prisma/client'
-import ws from 'ws'
+import { appRoutes } from './http/routes'
+import { ZodError } from 'zod'
 import { env } from './env'
 
 export const app = fastify()
 
-// Setup
-neonConfig.webSocketConstructor = ws
-const connectionString = `${env.DATABASE_URL}`
+app.register(appRoutes)
 
-// Init prisma client
-const pool = new Pool({ connectionString })
-const adapter = new PrismaNeon(pool)
-const prisma = new PrismaClient({ adapter })
+app.setErrorHandler((error, _request, reply) => {
+  if (error instanceof ZodError) {
+    return reply
+      .status(400)
+      .send({ message: 'Validation error.', issues: error.format() })
+  }
 
-// Use Prisma Client as normal
-prisma.user.create({
-  data: {
-    name: 'Lucas',
-    email: 'lucas@web2midia.com',
-  },
+  if (env.NODE_ENV !== 'production') {
+    console.log(error)
+  } else {
+    // TODO Here we should log to an external tool like DataDog/NewRelic/Sentry
+  }
+
+  return reply.status(500).send({ message: 'Internal server error.' })
 })
