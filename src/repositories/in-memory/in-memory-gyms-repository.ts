@@ -29,6 +29,7 @@ export class InMemoryGymsRepository implements GymsRepository {
           longitude: item.longitude.toNumber(),
         }
       )
+
       return distance < 10 * 1000 // 10 km
     })
   }
