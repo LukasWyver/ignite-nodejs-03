@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { Prisma, CheckIn } from '@prisma/client'
 import { CheckInsRepository } from '../check-ins-repository'
 
-export class InMemoryCheckInsRepository implements CheckInsRepository {
+export class PrismaCheckInsRepository implements CheckInsRepository {
   async countByUserId(userId: string) {
     const count = await prisma.checkIn.count({
       where: {
